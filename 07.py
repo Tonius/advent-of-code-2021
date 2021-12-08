@@ -5,7 +5,7 @@ with open("07-input.txt") as input_file:
     crab_positions = [int(pos) for pos in input_file.readline().split(",")]
 
 
-print("part 1")
+print("\npart 1")
 
 
 def get_minimum_fuel_usage(get_fuel_usage: Callable[[int, int], int]):
@@ -25,7 +25,7 @@ def get_fuel_usage_one(crab_position: int, to_position: int):
 print(f"Minimum fuel usage: {get_minimum_fuel_usage(get_fuel_usage_one)}")
 
 
-print("part 2")
+print("\npart 2")
 
 
 def get_fuel_usage_two(crab_position: int, to_position: int):
