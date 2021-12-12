@@ -10,21 +10,20 @@ class Cave:
     def is_big(self) -> bool:
         return self.name.isupper()
 
-    def traverse(self, traversed_small_caves: Optional[list["Cave"]] = None):
-        if traversed_small_caves is None:
-            traversed_small_caves = []
+    def traverse(self, traversed_caves: Optional[list["Cave"]] = None):
+        if traversed_caves is None:
+            traversed_caves = []
 
-        if not self.is_big():
-            traversed_small_caves.append(self)
-
-        print(self.name)
+        traversed_caves.append(self)
 
         if self.name == "end":
-            return
+            exit()
 
         for cave in self.connected_caves:
-            if cave.is_big() or cave not in traversed_small_caves:
-                cave.traverse(traversed_small_caves)
+            if cave.is_big() or cave not in traversed_caves:
+                print(f"{self.name} -> {cave.name}")
+
+                cave.traverse(traversed_caves)
 
 
 caves: list[Cave] = []
