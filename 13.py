@@ -43,15 +43,11 @@ for i, (axis, value) in enumerate(folds):
 print("\npart 2")
 
 max_x = max(x for x, _ in dots)
-max_y = max(y for y, _ in dots)
+max_y = max(y for _, y in dots)
 
-lines = [["." for _ in range(max_x + 1)] for _ in range(max_y + 1)]
+lines = [[" " for _ in range(max_x + 1)] for _ in range(max_y + 1)]
 
 for x, y in dots:
     lines[y][x] = "#"
 
-for i, chars in enumerate(lines):
-    if all(all(char == "." for char in line) for line in lines[i:]):
-        break
-
-    print("".join(chars))
+print("\n".join("".join(line) for line in lines))
