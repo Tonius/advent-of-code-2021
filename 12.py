@@ -19,25 +19,25 @@ class Cave:
         self,
         to_cave_name: str,
         can_pass_through_cave: Callable[["Cave", list[str]], bool],
-        paths: Optional[list[list[str]]] = None,
         current_path: Optional[list[str]] = None,
     ):
-        if paths is None:
-            paths = []
-
         if current_path is None:
             current_path = []
 
         current_path = [*current_path, self.name]
 
         if self.name == to_cave_name:
-            paths.append(current_path)
-        else:
-            for cave in self.connected_caves:
-                if can_pass_through_cave(cave, current_path):
+            return [current_path]
+
+        paths = []
+
+        for cave in self.connected_caves:
+            if can_pass_through_cave(cave, current_path):
+                paths.extend(
                     cave.find_paths_to(
-                        to_cave_name, can_pass_through_cave, paths, current_path
+                        to_cave_name, can_pass_through_cave, current_path
                     )
+                )
 
         return paths
 
