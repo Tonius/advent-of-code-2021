@@ -1,5 +1,10 @@
+from collections import Counter
 from dataclasses import dataclass
-from typing import Optional
+from typing import Callable, Optional
+
+
+START = "start"
+END = "end"
 
 
 @dataclass
@@ -10,20 +15,31 @@ class Cave:
     def is_big(self) -> bool:
         return self.name.isupper()
 
-    def traverse(self, traversed_caves: Optional[list["Cave"]] = None):
-        if traversed_caves is None:
-            traversed_caves = []
+    def find_paths_to(
+        self,
+        to_cave_name: str,
+        can_pass_through_cave: Callable[["Cave", list[str]], bool],
+        paths: Optional[list[list[str]]] = None,
+        current_path: Optional[list[str]] = None,
+    ):
+        if paths is None:
+            paths = []
 
-        traversed_caves.append(self)
+        if current_path is None:
+            current_path = []
 
-        if self.name == "end":
-            exit()
+        current_path = [*current_path, self.name]
 
-        for cave in self.connected_caves:
-            if cave.is_big() or cave not in traversed_caves:
-                print(f"{self.name} -> {cave.name}")
+        if self.name == to_cave_name:
+            paths.append(current_path)
+        else:
+            for cave in self.connected_caves:
+                if can_pass_through_cave(cave, current_path):
+                    cave.find_paths_to(
+                        to_cave_name, can_pass_through_cave, paths, current_path
+                    )
 
-                cave.traverse(traversed_caves)
+        return paths
 
 
 caves: list[Cave] = []
@@ -52,4 +68,32 @@ with open("12-input.txt") as input_file:
         first_cave.connected_caves.append(second_cave)
         second_cave.connected_caves.append(first_cave)
 
-find_cave("start").traverse()
+
+print("\npart 1")
+
+
+def can_pass_through_cave_one(cave: Cave, current_path: list[str]):
+    return cave.is_big() or cave.name not in current_path
+
+
+paths = find_cave(START).find_paths_to(END, can_pass_through_cave_one)
+
+print(f"Number of paths: {len(paths)}")
+
+
+print("\npart 2")
+
+
+def can_pass_through_cave_two(cave: Cave, current_path: list[str]):
+    if cave.name == START:
+        return False
+
+    if can_pass_through_cave_one(cave, current_path):
+        return True
+
+    return max(Counter([c for c in current_path[1:] if c.islower()]).values()) == 1
+
+
+paths = find_cave(START).find_paths_to(END, can_pass_through_cave_two)
+
+print(f"Number of paths: {len(paths)}")
