@@ -2,17 +2,17 @@ from collections import defaultdict
 from heapq import heappop, heappush
 
 
-risk_levels: dict[tuple[int, int], int] = {}
+grid: dict[tuple[int, int], int] = {}
 
 with open("15-input.txt") as input_file:
     for y, line in enumerate(input_file.read().splitlines()):
         for x, risk_level in enumerate(line):
-            risk_levels[(x, y)] = int(risk_level)
+            grid[(x, y)] = int(risk_level)
 
 
-def get_lowest_total_risk_level(risk_levels: dict[tuple[int, int], int]):
+def get_lowest_total_risk_level(grid: dict[tuple[int, int], int]):
     start = (0, 0)
-    end = max(risk_levels.keys(), key=lambda coords: coords[0] + coords[1])
+    end = max(grid.keys(), key=lambda coords: coords[0] + coords[1])
 
     def get_adjacent(x: int, y: int) -> list[tuple[int, int]]:
         return [
@@ -34,7 +34,7 @@ def get_lowest_total_risk_level(risk_levels: dict[tuple[int, int], int]):
     while True:
         for adjacent in get_adjacent(*current):
             current_risk_level = total_risk_levels[adjacent]
-            new_risk_level = total_risk_levels[current] + risk_levels[adjacent]
+            new_risk_level = total_risk_levels[current] + grid[adjacent]
 
             if current_risk_level is None or new_risk_level < current_risk_level:
                 total_risk_levels[adjacent] = new_risk_level
@@ -51,12 +51,12 @@ def get_lowest_total_risk_level(risk_levels: dict[tuple[int, int], int]):
 
 
 print("\npart 1")
-print(f"Lowest total risk level: {get_lowest_total_risk_level(risk_levels)}")
+print(f"Lowest total risk level: {get_lowest_total_risk_level(grid)}")
 
 
 print("\npart 2")
-grid_size_x = max(x for x, _ in risk_levels) + 1
-grid_size_y = max(y for _, y in risk_levels) + 1
+grid_size_x = max(x for x, _ in grid) + 1
+grid_size_y = max(y for _, y in grid) + 1
 
 
 def increase_risk_level(risk_level: int, offset: int):
@@ -67,24 +67,16 @@ def increase_risk_level(risk_level: int, offset: int):
     return risk_level
 
 
-new_risk_levels = risk_levels.copy()
+bigger_grid = grid.copy()
 
-for x_offset in range(1, 5):
-    for (x, y), risk_level in risk_levels.items():
-        new_risk_levels[(x + x_offset * grid_size_x, y)] = increase_risk_level(
-            risk_level, x_offset
-        )
+for (x, y), risk_level in grid.items():
+    for x_offset in range(0, 5):
+        for y_offset in range(0, 5):
+            bigger_grid[
+                (
+                    x + x_offset * grid_size_x,
+                    y + y_offset * grid_size_y,
+                )
+            ] = increase_risk_level(risk_level, x_offset + y_offset)
 
-risk_levels = new_risk_levels
-
-new_risk_levels = risk_levels.copy()
-
-for y_offset in range(1, 5):
-    for (x, y), risk_level in risk_levels.items():
-        new_risk_levels[(x, y + y_offset * grid_size_y)] = increase_risk_level(
-            risk_level, y_offset
-        )
-
-risk_levels = new_risk_levels
-
-print(f"Lowest total risk level: {get_lowest_total_risk_level(risk_levels)}")
+print(f"Lowest total risk level: {get_lowest_total_risk_level(bigger_grid)}")
