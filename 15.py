@@ -1,5 +1,5 @@
 from collections import defaultdict
-from math import ceil
+from heapq import heappop, heappush
 
 
 risk_levels: dict[tuple[int, int], int] = {}
@@ -27,11 +27,9 @@ def get_lowest_total_risk_level(risk_levels: dict[tuple[int, int], int]):
         ]
 
     total_risk_levels = defaultdict(lambda: None, {start: 0})
+    lowest_heap = []
     visited = set()
     current = start
-
-    node_count = len(risk_levels)
-    printerval = ceil(node_count / 100)
 
     while True:
         for adjacent in get_adjacent(*current):
@@ -40,24 +38,14 @@ def get_lowest_total_risk_level(risk_levels: dict[tuple[int, int], int]):
 
             if current_risk_level is None or new_risk_level < current_risk_level:
                 total_risk_levels[adjacent] = new_risk_level
+                heappush(lowest_heap, (new_risk_level, adjacent))
 
         if current == end:
             break
 
         visited.add(current)
 
-        if len(visited) % printerval == 0:
-            print(f"visited {len(visited)} of {len(risk_levels)}")
-
-        lowest_value = None
-        for (x, y), value in total_risk_levels.items():
-            if (
-                value is not None
-                and (x, y) not in visited
-                and (lowest_value is None or value < lowest_value)
-            ):
-                lowest_value = value
-                current = (x, y)
+        current = heappop(lowest_heap)[1]
 
     return total_risk_levels[end]
 
