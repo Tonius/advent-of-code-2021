@@ -1,5 +1,4 @@
-from functools import reduce
-from operator import mul
+from math import prod
 from typing import Optional
 
 
@@ -97,4 +96,4 @@ three_largest_basin_sizes = sorted(
 )[-3:]
 
 print(f"Sizes of the three largest basins: {three_largest_basin_sizes}")
-print(f"Result: {reduce(mul, three_largest_basin_sizes)}")
+print(f"Result: {prod(three_largest_basin_sizes)}")
