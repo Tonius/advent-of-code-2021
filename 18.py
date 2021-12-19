@@ -9,6 +9,9 @@ class Node:
     parent: Optional["Pair"] = None
     parent_side: Optional[Side] = None
 
+    def get_magnitude(self) -> int:
+        raise NotImplementedError
+
     def get_depth(self):
         depth = 0
 
@@ -37,57 +40,30 @@ class Number(Node):
     def __str__(self):
         return str(self.value)
 
-    # TODO: make a single function
-    def get_number_to_left(self) -> Optional["Number"]:
+    def get_magnitude(self):
+        return self.value
+
+    def get_number_to_side(self, side: Side) -> Optional["Number"]:
         prev_node = self
         node = self.parent
-        look_right = False
+        switch_sides = False
 
         while True:
             if node is None:
                 return None
 
-            if look_right:
-                if node.right is not prev_node:
-                    if isinstance(node.right, Number):
-                        return node.right
-                    elif isinstance(node.right, Pair):
-                        prev_node = node
-                        node = node.right
-            elif node.left is not prev_node:
-                if isinstance(node.left, Number):
-                    return node.left
-                elif isinstance(node.left, Pair):
+            child = getattr(
+                node,
+                ("right" if side == "left" else "left") if switch_sides else side,
+            )
+
+            if child is not prev_node:
+                if isinstance(child, Number):
+                    return child
+                elif isinstance(child, Pair):
                     prev_node = node
-                    node = node.left
-                    look_right = True
-            else:
-                prev_node = node
-                node = node.parent
-
-    def get_number_to_right(self) -> Optional["Number"]:
-        prev_node = self
-        node = self.parent
-        look_left = False
-
-        while True:
-            if node is None:
-                return None
-
-            if look_left:
-                if node.left is not prev_node:
-                    if isinstance(node.left, Number):
-                        return node.left
-                    elif isinstance(node.left, Pair):
-                        prev_node = node
-                        node = node.left
-            elif node.right is not prev_node:
-                if isinstance(node.right, Number):
-                    return node.right
-                elif isinstance(node.right, Pair):
-                    prev_node = node
-                    node = node.right
-                    look_left = True
+                    node = child
+                    switch_sides = True
             else:
                 prev_node = node
                 node = node.parent
@@ -120,6 +96,9 @@ class Pair(Node):
 
     def __add__(self, other: "Pair"):
         return Pair(self, other).reduce()
+
+    def get_magnitude(self):
+        return 3 * self.left.get_magnitude() + 2 * self.right.get_magnitude()
 
     def find_pair_to_explode(self):
         if self.get_depth() == 4:
@@ -163,27 +142,42 @@ class Pair(Node):
         return self
 
     def explode(self):
-        print(f"explode {repr(self)}")
-
         if not isinstance(self.left, Number) or not isinstance(self.right, Number):
             raise Exception("Not a pair of numbers!")
 
-        left_number = self.left.get_number_to_left()
+        left_number = self.left.get_number_to_side("left")
         if left_number is not None:
             left_number.value += self.left.value
 
-        right_number = self.right.get_number_to_right()
+        right_number = self.right.get_number_to_side("right")
         if right_number is not None:
             right_number.value += self.right.value
 
         self.parent.set_child(self.parent_side, Number(0))
 
 
-pair = (
-    Pair.from_data([1, 1])
-    + Pair.from_data([2, 2])
-    + Pair.from_data([3, 3])
-    + Pair.from_data([4, 4])
-)
-pair.reduce()
-print(pair)
+with open("18-input.txt") as input_file:
+    pairs = [eval(line) for line in input_file.read().strip().splitlines()]
+
+
+print("\npart 1")
+
+final_sum = Node.from_data(pairs[0])
+for pair in pairs[1:]:
+    final_sum += Node.from_data(pair)
+
+print(f"Final sum: {final_sum}")
+print(f"Magnitude of final sum: {final_sum.get_magnitude()}")
+
+
+print("\npart 2")
+
+max_magnitude = 0
+
+for pair in pairs:
+    for other_pair in pairs:
+        if other_pair is not pair:
+            result: Pair = Node.from_data(pair) + Node.from_data(other_pair)
+            max_magnitude = max(max_magnitude, result.get_magnitude())
+
+print(f"Largest magnitude of any sum: {max_magnitude}")
