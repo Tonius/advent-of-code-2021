@@ -1,3 +1,4 @@
+import json
 from math import ceil, floor
 from typing import Literal, Optional, Sequence, Union
 
@@ -157,7 +158,7 @@ class Pair(Node):
 
 
 with open("18-input.txt") as input_file:
-    pairs = [eval(line) for line in input_file.read().strip().splitlines()]
+    pairs = [json.loads(line) for line in input_file.read().strip().splitlines()]
 
 
 print("\npart 1")
