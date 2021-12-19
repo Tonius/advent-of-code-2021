@@ -1,3 +1,4 @@
+from math import ceil, floor
 from typing import Literal, Optional, Sequence, Union
 
 
@@ -18,9 +19,6 @@ class Node:
 
         return depth
 
-    def split(self):
-        print(f"split {repr(self)}")
-
     @classmethod
     def from_data(cls, data: Union[Sequence, int]):
         if isinstance(data, int):
@@ -39,12 +37,66 @@ class Number(Node):
     def __str__(self):
         return str(self.value)
 
+    # TODO: make a single function
     def get_number_to_left(self) -> Optional["Number"]:
-        # TODO: zie boekje
-        ...
+        prev_node = self
+        node = self.parent
+        look_right = False
+
+        while True:
+            if node is None:
+                return None
+
+            if look_right:
+                if node.right is not prev_node:
+                    if isinstance(node.right, Number):
+                        return node.right
+                    elif isinstance(node.right, Pair):
+                        prev_node = node
+                        node = node.right
+            elif node.left is not prev_node:
+                if isinstance(node.left, Number):
+                    return node.left
+                elif isinstance(node.left, Pair):
+                    prev_node = node
+                    node = node.left
+                    look_right = True
+            else:
+                prev_node = node
+                node = node.parent
 
     def get_number_to_right(self) -> Optional["Number"]:
-        ...
+        prev_node = self
+        node = self.parent
+        look_left = False
+
+        while True:
+            if node is None:
+                return None
+
+            if look_left:
+                if node.left is not prev_node:
+                    if isinstance(node.left, Number):
+                        return node.left
+                    elif isinstance(node.left, Pair):
+                        prev_node = node
+                        node = node.left
+            elif node.right is not prev_node:
+                if isinstance(node.right, Number):
+                    return node.right
+                elif isinstance(node.right, Pair):
+                    prev_node = node
+                    node = node.right
+                    look_left = True
+            else:
+                prev_node = node
+                node = node.parent
+
+    def split(self):
+        value = self.value / 2
+        self.parent.set_child(
+            self.parent_side, Pair(Number(floor(value)), Number(ceil(value)))
+        )
 
 
 class Pair(Node):
@@ -75,6 +127,7 @@ class Pair(Node):
 
         for name in ("left", "right"):
             child = getattr(self, name)
+
             if isinstance(child, Pair):
                 result = child.find_pair_to_explode()
                 if result is not None:
@@ -85,10 +138,11 @@ class Pair(Node):
     def find_number_to_split(self):
         for name in ("left", "right"):
             child = getattr(self, name)
-            if isinstance(child, Number):
-                if child.value >= 10:
-                    return child
-            elif isinstance(child, Pair):
+
+            if isinstance(child, Number) and child.value >= 10:
+                return child
+
+            if isinstance(child, Pair):
                 result = child.find_number_to_split()
                 if result is not None:
                     return result
@@ -101,8 +155,10 @@ class Pair(Node):
 
         if pair_to_explode is not None:
             pair_to_explode.explode()
+            self.reduce()
         elif number_to_split is not None:
             number_to_split.split()
+            self.reduce()
 
         return self
 
@@ -123,5 +179,11 @@ class Pair(Node):
         self.parent.set_child(self.parent_side, Number(0))
 
 
-pair = Pair.from_data([[[[[9, 8], 1], 2], 3], 4])
-print(pair.reduce())
+pair = (
+    Pair.from_data([1, 1])
+    + Pair.from_data([2, 2])
+    + Pair.from_data([3, 3])
+    + Pair.from_data([4, 4])
+)
+pair.reduce()
+print(pair)
